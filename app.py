@@ -1,5 +1,7 @@
 from flask import Flask, jsonify, request, Response
-import requests, os
+import requests
+import os
+import json
 
 app = Flask(__name__)
 
@@ -60,26 +62,24 @@ def jsonld_for_doi(doi):
         return jsonify({"error": str(e)}), 500
 
 @app.route("/script/<path:doi>")
-def script_with_jsonld(doi):
-    try:
-        encoded_doi = doi.replace("/", "%2F")
-        metadata, ids = fetch_PublishedData_ids(encoded_doi)
-        encoded_ids = [id.replace("/", "%2F") for id in ids]
-        folders = fetch_datasets_folders(encoded_ids)
-        download_urls = [STORAGE_BASE_URL + folder for folder in folders]
-        jsonld = construct_jsonld(metadata, download_urls)
+def inject_script(doi):
+    html_resp = requests.get("http://localhost/index.html")  # request from NGINX
+    html = html_resp.text
 
-        # Read Angular's index.html
-        with open("/usr/share/nginx/html/index.html", "r") as f:
-            html = f.read()
+    # Directly fetch the raw JSON-LD data
+    encoded_doi = doi.replace("/", "%2F")
+    metadata, ids = fetch_PublishedData_ids(encoded_doi)
+    encoded_ids = [id.replace("/", "%2F") for id in ids]
+    folders = fetch_datasets_folders(encoded_ids)
+    download_urls = [STORAGE_BASE_URL + folder for folder in folders]
+    jsonld = construct_jsonld(metadata, download_urls)
 
-        # Inject JSON-LD into <head>
-        script = f'<script type="application/ld+json">{jsonify(jsonld).get_data(as_text=True)}</script>'
-        html = html.replace("</head>", script + "</head>")
+    injected = html.replace(
+        "<head>",
+        f"<head>\n<script type='application/ld+json'>\n{json.dumps(jsonld)}\n</script>\n"
+    )
 
-        return Response(html, mimetype="text/html")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return Response(injected, mimetype="text/html")
 
 
 if __name__ == "__main__":
