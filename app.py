@@ -59,5 +59,28 @@ def jsonld_for_doi(doi):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/script/<path:doi>")
+def script_with_jsonld(doi):
+    try:
+        encoded_doi = doi.replace("/", "%2F")
+        metadata, ids = fetch_PublishedData_ids(encoded_doi)
+        encoded_ids = [id.replace("/", "%2F") for id in ids]
+        folders = fetch_datasets_folders(encoded_ids)
+        download_urls = [STORAGE_BASE_URL + folder for folder in folders]
+        jsonld = construct_jsonld(metadata, download_urls)
+
+        # Read Angular's index.html
+        with open("/usr/share/nginx/html/index.html", "r") as f:
+            html = f.read()
+
+        # Inject JSON-LD into <head>
+        script = f'<script type="application/ld+json">{jsonify(jsonld).get_data(as_text=True)}</script>'
+        html = html.replace("</head>", script + "</head>")
+
+        return Response(html, mimetype="text/html")
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=5000)
