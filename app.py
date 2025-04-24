@@ -1,12 +1,9 @@
 from flask import Flask, jsonify, request, Response
 import requests
 import json
-from logic.scicat_utils import fetch_PublishedData_ids, fetch_datasets_folders
+from logic.scicat_utils import fetch_PublishedData_ids, fetch_folders_urls, get_digests
 from logic.jsonld import construct_jsonld
 from logic.metalink import construct_metalink, get_files_properties
-import os
-
-STORAGE_BASE_URL = os.environ.get("STORAGE_BASE_URL", "https://hifis-storage.desy.de:2880")
 
 app = Flask(__name__)
 
@@ -18,8 +15,7 @@ def serve_doi_metadata(doi):
         encoded_doi = doi.replace("/", "%2F")
         metadata, ids = fetch_PublishedData_ids(encoded_doi)
         encoded_ids = [id.replace("/", "%2F") for id in ids]
-        folders = fetch_datasets_folders(encoded_ids)
-        folder_urls = [STORAGE_BASE_URL + folder for folder in folders]
+        folder_urls = fetch_folders_urls(encoded_ids)
         jsonld = construct_jsonld(metadata, folder_urls)
 
         if "application/ld+json" in accept:
