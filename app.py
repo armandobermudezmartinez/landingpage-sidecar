@@ -41,7 +41,7 @@ def construct_jsonld(metadata, download_urls):
         "identifier": metadata.get("doi"),
         "name": metadata.get("title"),
         "description": metadata.get("dataDescription"),
-        "distribution": distributions  # List of all download URLs
+        "distribution": distributions 
     }
 
 def construct_metalink(metadata, download_urls):
@@ -77,12 +77,16 @@ def serve_doi_metadata(doi):
                 mimetype='application/ld+json'
             )
         if "application/metalink4+xml" in accept:
-            metalink_xml = construct_metalink(metadata, download_urls)
-            return Response(
-                metalink_xml,
-                status=200,
-                mimetype="application/metalink4+xml"
-            )
+            metalink_url = download_urls[0]
+            metalink_response = requests.get(metalink_url, headers={"Accept": "application/metalink4+xml"})
+            if metalink_response.status_code == 200:
+                return Response(
+                    metalink_response.content,
+                    status=200,
+                    mimetype="application/metalink4+xml"
+                )
+            else:
+                return jsonify({"error": "Failed to fetch Metalink XML from the URL."}), 500
 
         elif "text/html" in accept or "*/*" in accept:
             html_resp = requests.get("http://localhost/index.html")  # request from NGINX
