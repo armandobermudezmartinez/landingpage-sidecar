@@ -113,6 +113,7 @@ def serve_doi_metadata(doi):
             #     return jsonify({"error": "Failed to fetch Metalink XML from the URL."}), 500
 
             file_urls = get_file_urls(folder_urls, from_metalink=True)
+            logging.debug(f'files urls: {folder_urls}')
             logging.debug(f'files urls: {file_urls}')
             metalink_xml = construct_metalink(metadata, file_urls)
             return Response(
