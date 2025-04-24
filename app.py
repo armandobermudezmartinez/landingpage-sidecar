@@ -47,19 +47,22 @@ def construct_jsonld(metadata, folder_urls):
         "distribution": distributions 
     }
 
-def construct_metalink(metadata, urls, sizes, updates):
+def construct_metalink(metadata, urls, sizes, updates, digests):
     metalink = ET.Element("metalink", xmlns="urn:ietf:params:xml:ns:metalink")
 
     ET.SubElement(metalink, "identity", name=metadata.get("title"))
     ET.SubElement(metalink, "name", name=metadata.get("title"))
     ET.SubElement(metalink, "description", name=metadata.get("dataDescription"))
 
-    for url, size, updated in zip(urls, sizes, updates):
+    for url, size, updated, digest in zip(urls, sizes, updates, digests):
         file_name = url.split("/")[-1]
         file_element = ET.SubElement(metalink, "file", name=file_name)
+        hash_type, hash_value = digest.split('=', 1)
         ET.SubElement(file_element, "size").text = size
         ET.SubElement(file_element, "url").text = url
         ET.SubElement(file_element, "updated").text = updated
+        hash_element = ET.SubElement(file_element, "hash", type=hash_type)
+        hash_element.text = hash_value
 
     return ET.tostring(metalink, encoding="utf-8", xml_declaration=True).decode("utf-8")
 
@@ -89,7 +92,7 @@ def get_files_properties(folder_urls, from_metalink=True):
     
     return file_urls, file_sizes, file_updates
 
-def get_hashes(urls):
+def get_digests(urls):
     headers = {
         "Want-Digest": "ADLER32"
     }
@@ -99,12 +102,12 @@ def get_hashes(urls):
         if response.status_code == 200:
             digest = response.headers.get('Digest')
             if digest:
-                digests.append(digest.split('=', 1)[1])
+                digests.append((digest.split('=', 1)[0], digest.split('=', 1)[1]))
             else:
                 print("No Digest header found.")
         else:
             print(f"Failed to fetch headers. Status code: {response.status_code}")
-    logging.debug(f'digests: {digests}' )
+    return digests
 
 @app.route("/doi/<path:doi>")
 def serve_doi_metadata(doi):
@@ -127,8 +130,9 @@ def serve_doi_metadata(doi):
         
         if "application/metalink4+xml" in accept:
             urls, sizes, updates = get_files_properties(folder_urls, from_metalink=True)
-            get_hashes(urls)
-            metalink_xml = construct_metalink(metadata, urls, sizes, updates)
+            digests = get_digests(urls)
+
+            metalink_xml = construct_metalink(metadata, urls, sizes, updates, digests)
             return Response(
                 metalink_xml,
                 status=200,
