@@ -62,7 +62,7 @@ def construct_metalink(metadata, file_urls):
     return ET.tostring(metalink, encoding="utf-8", xml_declaration=True).decode("utf-8")
 
 def get_file_urls_from_metalinks(folder_urls):
-    files = []
+    file_urls = []
     for url in folder_urls:
         metalink_response = requests.get(url, headers={"Accept": "application/metalink4+xml"})
         if metalink_response.status_code == 200:
@@ -70,11 +70,12 @@ def get_file_urls_from_metalinks(folder_urls):
             root = tree.getroot()
             
             folder_elements = root.findall('.//{urn:ietf:params:xml:ns:metalink}file')
-            files.extend(folder_elements)
+            for element in folder_elements:
+                file_url = element.find('{urn:ietf:params:xml:ns:metalink}url').text
+                file_urls.append(file_url)
         else:
-            # Handle errors if any Metalink XML fetch fails
             return jsonify({"error": f"Failed to fetch Metalink XML from {url}"}), 500
-    logging.debug("files:", files)
+    logging.debug(f"files: {file_urls}")
 
 
 @app.route("/doi/<path:doi>")
