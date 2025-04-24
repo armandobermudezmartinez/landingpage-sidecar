@@ -44,8 +44,10 @@ def construct_jsonld(metadata, download_urls):
     }
 
 @app.route("/doi/<path:doi>")
-def jsonld_for_doi(doi):
+def serve_doi_metadata(doi):
     try:
+        accept = request.headers.get("Accept", "")
+        
         encoded_doi = doi.replace("/", "%2F")
         metadata, ids = fetch_PublishedData_ids(encoded_doi)
         encoded_ids = [id.replace("/", "%2F") for id in ids]
