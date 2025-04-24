@@ -6,7 +6,7 @@ This sidecar container allows resolving download links and other information thr
 
 To extract the `ld+json` metadata for crawlers, you can use the following command:
 
-```bash
+bash
 curl -s https://public-doi-dev.desy.de/detail/10.83065%2F9d290825-4df8-46e2-92aa-d74510f0858a```
 
 The ld+json metadata can be found inside the <script type='application/ld+json'>...</script> tag.
