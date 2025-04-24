@@ -26,13 +26,13 @@ def fetch_datasets_folders(pids):
         folders.append(response.json()["sourceFolder"])
     return folders
 
-def construct_jsonld(metadata, download_urls):
+def construct_jsonld(metadata, folder_urls):
     distributions = [
         {
             "@type": "DataDownload",
             "contentUrl": url,
             # "encodingFormat": "application/zip"
-        } for url in download_urls
+        } for url in folder_urls
     ]
 
     return {
@@ -58,7 +58,8 @@ def construct_metalink(metadata, file_urls):
 
     return ET.tostring(metalink, encoding="utf-8", xml_declaration=True).decode("utf-8")
 
-
+def get_file_urls_from_metalinks(folder_urls):
+    pass
 
 @app.route("/doi/<path:doi>")
 def serve_doi_metadata(doi):
@@ -69,17 +70,17 @@ def serve_doi_metadata(doi):
         metadata, ids = fetch_PublishedData_ids(encoded_doi)
         encoded_ids = [id.replace("/", "%2F") for id in ids]
         folders = fetch_datasets_folders(encoded_ids)
-        download_urls = [STORAGE_BASE_URL + folder for folder in folders]
+        folder_urls = [STORAGE_BASE_URL + folder for folder in folders]
         
         if "application/ld+json" in accept:
-            jsonld = construct_jsonld(metadata, download_urls)
+            jsonld = construct_jsonld(metadata, folder_urls)
             return Response(
                 response=jsonify(jsonld).data,
                 status=200,
                 mimetype='application/ld+json'
             )
         if "application/metalink4+xml" in accept:
-            metalink_url = download_urls[0]
+            metalink_url = folder_urls[0]
             metalink_response = requests.get(metalink_url, headers={"Accept": "application/metalink4+xml"})
             if metalink_response.status_code == 200:
                 return Response(
