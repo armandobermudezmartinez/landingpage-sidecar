@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, Response
 import requests
 import os
 import json
-import xml.etree.ElementTree as ET
+
 
 app = Flask(__name__)
 
@@ -44,6 +44,8 @@ def construct_jsonld(metadata, download_urls):
         "distribution": distributions  # List of all download URLs
     }
 
+def construct_metalink(metadata, download_urls):
+    pass
 
 @app.route("/doi/<path:doi>")
 def serve_doi_metadata(doi):
