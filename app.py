@@ -77,7 +77,7 @@ def serve_doi_metadata(doi):
                 mimetype='application/ld+json'
             )
         if "application/metalink4+xml" in accept:
-            metalink_xml = construct_metalink(download_urls)
+            metalink_xml = construct_metalink(metadata, download_urls)
             return Response(
                 metalink_xml,
                 status=200,
