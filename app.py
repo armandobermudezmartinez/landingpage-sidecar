@@ -47,24 +47,26 @@ def construct_jsonld(metadata, folder_urls):
         "distribution": distributions 
     }
 
-def construct_metalink(metadata, file_urls):
+def construct_metalink(metadata, urls, sizes, updates):
     metalink = ET.Element("metalink", xmlns="urn:ietf:params:xml:ns:metalink")
 
     ET.SubElement(metalink, "identity", name=metadata.get("title"))
     ET.SubElement(metalink, "name", name=metadata.get("title"))
     ET.SubElement(metalink, "description", name=metadata.get("dataDescription"))
 
-    for url in file_urls:
+    for url, size, updated in zip(urls, sizes, updates):
         file_name = url.split("/")[-1]
-        file_el = ET.SubElement(metalink, "file", name=file_name)
-        ET.SubElement(file_el, "url").text = url
+        file_element = ET.SubElement(metalink, "file", name=file_name)
+        ET.SubElement(file_element, "size").text = size
+        ET.SubElement(file_element, "url").text = url
+        ET.SubElement(file_element, "updated").text = updated
 
     return ET.tostring(metalink, encoding="utf-8", xml_declaration=True).decode("utf-8")
 
-def get_file_properties(folder_urls, from_metalink=True):
-    file_url_list = []
-    file_size_list = []
-    file_updated_list = []
+def get_files_properties(folder_urls, from_metalink=True):
+    file_urls = []
+    file_sizes = []
+    file_updates = []
     
     for folder_url in folder_urls:
         if from_metalink:
@@ -74,22 +76,18 @@ def get_file_properties(folder_urls, from_metalink=True):
                 root = tree.getroot()
                 
                 file_elements = root.findall('.//{urn:ietf:params:xml:ns:metalink}file')
-                for file in file_elements:
-                    url = file.find('{urn:ietf:params:xml:ns:metalink}url')
-                    size = file.find('{urn:ietf:params:xml:ns:metalink}size')
-                    updated = file.find('{urn:ietf:params:xml:ns:metalink}updated')
+                for element in file_elements:
+                    url = element.find('{urn:ietf:params:xml:ns:metalink}url')
+                    size = element.find('{urn:ietf:params:xml:ns:metalink}size')
+                    updated = element.find('{urn:ietf:params:xml:ns:metalink}updated')
 
-                    file_url_list.append(url.text if url is not None else None)
-                    file_size_list.append(size.text if size is not None else None)
-                    file_updated_list.append(updated.text if updated is not None else None)
+                    file_urls.append(url.text if url is not None else None)
+                    file_sizes.append(size.text if size is not None else None)
+                    file_updates.append(updated.text if updated is not None else None)
             else:
                 raise RuntimeError(f"Failed to fetch Metalink XML from {folder_url} (status code: {metalink_response.status_code})")
     
-    return {
-        'url': file_url_list,
-        'size': file_size_list,
-        'updated': file_updated_list
-    }
+    return file_urls, file_sizes, file_updates
 
 @app.route("/doi/<path:doi>")
 def serve_doi_metadata(doi):
@@ -111,8 +109,8 @@ def serve_doi_metadata(doi):
             )
         
         if "application/metalink4+xml" in accept:
-            file_url_list, file_size_list, file_updated_list = get_file_properties(folder_urls, from_metalink=True)
-            metalink_xml = construct_metalink(metadata, file_url_list)
+            urls, sizes, updates = get_files_properties(folder_urls, from_metalink=True)
+            metalink_xml = construct_metalink(metadata, urls, sizes, updates)
             return Response(
                 metalink_xml,
                 status=200,
