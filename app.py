@@ -45,7 +45,7 @@ def construct_jsonld(metadata, download_urls):
     }
 
 def construct_metalink(metadata, download_urls):
-    pass
+    metalink = ET.Element("metalink", xmlns="urn:ietf:params:xml:ns:metalink")
 
 @app.route("/doi/<path:doi>")
 def serve_doi_metadata(doi):
