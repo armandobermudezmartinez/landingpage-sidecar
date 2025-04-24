@@ -100,23 +100,7 @@ def serve_doi_metadata(doi):
                 mimetype='application/ld+json'
             )
         if "application/metalink4+xml" in accept:
-            # metalink_url = folder_urls[0]
-            # metalink_response = requests.get(metalink_url, headers={"Accept": "application/metalink4+xml"})
-
-            # if metalink_response.status_code == 200:
-            #     return Response(
-            #         metalink_response.content,
-            #         status=200,
-            #         mimetype="application/metalink4+xml"
-            #     )
-            # else:
-            #     return jsonify({"error": "Failed to fetch Metalink XML from the URL."}), 500
-
             file_urls = get_file_urls(folder_urls, from_metalink=True)
-            logging.debug(f'number of files: {len(file_urls)}')
-            logging.debug(f'number of folders: {len(folder_urls)}')
-            logging.debug(f'file urls: {folder_urls}')
-            logging.debug(f'folder urls: {file_urls}')
             metalink_xml = construct_metalink(metadata, file_urls)
             return Response(
                 metalink_xml,
