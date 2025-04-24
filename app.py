@@ -76,26 +76,6 @@ def serve_doi_metadata(doi):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/script/<path:doi>")
-def inject_script(doi):
-    html_resp = requests.get("http://localhost/index.html")  # request from NGINX
-    html = html_resp.text
-
-    # Directly fetch the raw JSON-LD data
-    encoded_doi = doi.replace("/", "%2F")
-    metadata, ids = fetch_PublishedData_ids(encoded_doi)
-    encoded_ids = [id.replace("/", "%2F") for id in ids]
-    folders = fetch_datasets_folders(encoded_ids)
-    download_urls = [STORAGE_BASE_URL + folder for folder in folders]
-    jsonld = construct_jsonld(metadata, download_urls)
-
-    injected = html.replace(
-        "<head>",
-        f"<head>\n<script type='application/ld+json'>\n{json.dumps(jsonld)}\n</script>\n"
-    )
-
-    return Response(injected, mimetype="text/html")
-
 
 if __name__ == "__main__":
     app.run(debug=False, host="0.0.0.0", port=5000)
