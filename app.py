@@ -3,6 +3,7 @@ import requests
 import os
 import json
 import xml.etree.ElementTree as ET
+import urllib.parse
 import logging
 
 logging.basicConfig(level=logging.DEBUG)
@@ -55,7 +56,9 @@ def construct_metalink(metadata, urls, sizes, updates, digests):
     ET.SubElement(metalink, "description", name=metadata.get("dataDescription"))
 
     for url, size, updated, digest in zip(urls, sizes, updates, digests):
-        file_name = url.split("/")[-1]
+        encoded_file_name = url.split("/")[-1]
+        file_name = urllib.parse.unquote(encoded_file_name)
+
         file_element = ET.SubElement(metalink, "file", name=file_name)
         hash_type, hash_value = digest.split('=', 1)
         ET.SubElement(file_element, "size").text = size
