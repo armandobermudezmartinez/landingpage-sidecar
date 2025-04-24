@@ -1,6 +1,6 @@
 # DOI resolver for Scicat Landingpage
 
-This sidecar container allows resolving download links and other information throgh the Scicat landingpage, using context negociation for ld+json and metalink4+xml. In addition it embeds the ld+json in the angular html of the landingpage, making the metadata available for crawlers.
+This sidecar container allows resolving download links and other information through the Scicat landingpage, using context negociation for ld+json and metalink4+xml. In addition it embeds the ld+json in the angular html of the landingpage, making the metadata available for crawlers.
 
 ld+json for crawlers:
 
