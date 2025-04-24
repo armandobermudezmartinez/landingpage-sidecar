@@ -85,11 +85,7 @@ def get_file_urls(folder_urls, from_metalink=True):
             else:
                 raise RuntimeError(f"Failed to fetch Metalink XML from {folder_url} (status code: {metalink_response.status_code})")
     
-    return {
-        'url': file_url_list,
-        'size': file_size_list,
-        'updated': file_updated_list
-    }
+    return file_url_list, file_size_list, file_updated_list
 
 @app.route("/doi/<path:doi>")
 def serve_doi_metadata(doi):
@@ -109,6 +105,7 @@ def serve_doi_metadata(doi):
                 status=200,
                 mimetype='application/ld+json'
             )
+        
         if "application/metalink4+xml" in accept:
             file_urls = get_file_urls(folder_urls, from_metalink=True)
             metalink_xml = construct_metalink(metadata, file_urls)
