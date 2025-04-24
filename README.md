@@ -7,7 +7,7 @@ This sidecar container allows resolving download links and other information thr
 To extract the `ld+json` metadata for crawlers, you can use the following command:
 
 ```bash
-curl -s https://public-doi-dev.desy.de/detail/10.83065%2F9d290825-4df8-46e2-92aa-d74510f0858a
+curl -s https://public-doi-dev.desy.de/detail/10.83065%2F9d290825-4df8-46e2-92aa-d74510f0858a```
 
 The ld+json metadata can be found inside the <script type='application/ld+json'>...</script> tag.
 
@@ -16,8 +16,10 @@ The ld+json metadata can be found inside the <script type='application/ld+json'>
 For content negotiation, you can request either ld+json or metalink4+xml metadata using the following commands:
 
 Request ld+json:
-curl -sH "Accept: application/ld+json" https://public-doi-dev.desy.de/detail/10.83065%2F9d290825-4df8-46e2-92aa-d74510f0858a | jq
+```bash
+curl -sH "Accept: application/ld+json" https://public-doi-dev.desy.de/detail/10.83065%2F9d290825-4df8-46e2-92aa-d74510f0858a | jq```
 
 Request metalink4+xml:
-curl -sH "Accept: application/metalink4+xml" https://public-doi-dev.desy.de/detail/10.83065%2F9d290825-4df8-46e2-92aa-d74510f0858a | xmllint -format -
+```bash
+curl -sH "Accept: application/metalink4+xml" https://public-doi-dev.desy.de/detail/10.83065%2F9d290825-4df8-46e2-92aa-d74510f0858a | xmllint -format -```
 
