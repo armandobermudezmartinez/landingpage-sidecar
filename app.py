@@ -47,7 +47,7 @@ def construct_jsonld(metadata, download_urls):
 def serve_doi_metadata(doi):
     try:
         accept = request.headers.get("Accept", "")
-        
+
         encoded_doi = doi.replace("/", "%2F")
         metadata, ids = fetch_PublishedData_ids(encoded_doi)
         encoded_ids = [id.replace("/", "%2F") for id in ids]
@@ -55,11 +55,12 @@ def serve_doi_metadata(doi):
         download_urls = [STORAGE_BASE_URL + folder for folder in folders]
         jsonld = construct_jsonld(metadata, download_urls)
 
-        return Response(
-            response=jsonify(jsonld).data,
-            status=200,
-            mimetype='application/ld+json'
-        )
+        if "application/ld+json" in accept:
+            return Response(
+                response=jsonify(jsonld).data,
+                status=200,
+                mimetype='application/ld+json'
+            )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
