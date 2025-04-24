@@ -61,20 +61,21 @@ def construct_metalink(metadata, file_urls):
 
     return ET.tostring(metalink, encoding="utf-8", xml_declaration=True).decode("utf-8")
 
-def get_file_urls_from_metalinks(folder_urls):
+def get_file_urls(folder_urls, from_metalink=True):
     file_urls = []
     for url in folder_urls:
-        metalink_response = requests.get(url, headers={"Accept": "application/metalink4+xml"})
-        if metalink_response.status_code == 200:
-            tree = ET.ElementTree(ET.fromstring(metalink_response.content))
-            root = tree.getroot()
-            
-            folder_elements = root.findall('.//{urn:ietf:params:xml:ns:metalink}file')
-            for element in folder_elements:
-                file_url = element.find('{urn:ietf:params:xml:ns:metalink}url').text
-                file_urls.append(file_url)
-        else:
-            return jsonify({"error": f"Failed to fetch Metalink XML from {url}"}), 500
+        if from_metalink:
+            metalink_response = requests.get(url, headers={"Accept": "application/metalink4+xml"})
+            if metalink_response.status_code == 200:
+                tree = ET.ElementTree(ET.fromstring(metalink_response.content))
+                root = tree.getroot()
+                
+                folder_elements = root.findall('.//{urn:ietf:params:xml:ns:metalink}file')
+                for element in folder_elements:
+                    file_url = element.find('{urn:ietf:params:xml:ns:metalink}url').text
+                    file_urls.append(file_url)
+            else:
+                return jsonify({"error": f"Failed to fetch Metalink XML from {url}"}), 500
     return file_urls
 
 
@@ -111,7 +112,8 @@ def serve_doi_metadata(doi):
             # else:
             #     return jsonify({"error": "Failed to fetch Metalink XML from the URL."}), 500
 
-            file_urls = get_file_urls_from_metalinks(folder_urls)
+            file_urls = get_file_urls(folder_urls, from_metalink=True)
+            logging.debug(f'files urls: {file_urls}')
             metalink_xml = construct_metalink(metadata, file_urls)
             return Response(
                 metalink_xml,
