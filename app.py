@@ -61,6 +61,18 @@ def serve_doi_metadata(doi):
                 status=200,
                 mimetype='application/ld+json'
             )
+        elif "text/html" in accept or "*/*" in accept:
+            html_resp = requests.get("http://localhost/index.html")  # request from NGINX
+            html = html_resp.text
+            injected = html.replace(
+                "<head>",
+                f"<head>\n<script type='application/ld+json'>\n{json.dumps(jsonld)}\n</script>\n"
+            )
+            return Response(injected, mimetype="text/html")
+
+        else:
+            return jsonify({"error": "Unsupported Accept header"}), 406
+    
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
