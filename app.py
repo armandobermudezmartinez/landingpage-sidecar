@@ -66,7 +66,7 @@ def serve_doi_metadata(doi):
             html = html_resp.text
             injected = html.replace(
                 "<head>",
-                f"<head>\n<script type='application/ld+json'>\n{json.dumps(jsonld)}\n</script>\n"
+                f"<head>\n<script type='application/ld+json'>\n{json.dumps(jsonld, indent=2)}\n</script>\n"
             )
             return Response(injected, mimetype="text/html")
 
