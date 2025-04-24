@@ -3,6 +3,9 @@ import requests
 import os
 import json
 import xml.etree.ElementTree as ET
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
@@ -71,7 +74,7 @@ def get_file_urls_from_metalinks(folder_urls):
         else:
             # Handle errors if any Metalink XML fetch fails
             return jsonify({"error": f"Failed to fetch Metalink XML from {url}"}), 500
-    print(files)
+    logging.debug("files:", files)
 
 
 @app.route("/doi/<path:doi>")
