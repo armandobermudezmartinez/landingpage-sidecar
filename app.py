@@ -1,9 +1,10 @@
 from flask import Flask, jsonify, request, Response
 import requests
 import json
-from logic.scicat_utils import fetch_PublishedData_ids, fetch_folders_urls, get_digests
+from logic.utils import get_files_properties, get_digests
+from logic.scicat_utils import fetch_PublishedData_ids, fetch_folders_urls
 from logic.jsonld import construct_jsonld
-from logic.metalink import construct_metalink, get_files_properties
+from logic.metalink import construct_metalink
 
 app = Flask(__name__)
 
