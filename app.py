@@ -84,7 +84,9 @@ def serve_doi_metadata(doi):
         encoded_ids = [id.replace("/", "%2F") for id in ids]
         folders = fetch_datasets_folders(encoded_ids)
         folder_urls = [STORAGE_BASE_URL + folder for folder in folders]
-        
+
+        get_file_urls_from_metalinks(folder_urls)
+
         if "application/ld+json" in accept:
             jsonld = construct_jsonld(metadata, folder_urls)
             return Response(
@@ -95,6 +97,7 @@ def serve_doi_metadata(doi):
         if "application/metalink4+xml" in accept:
             metalink_url = folder_urls[0]
             metalink_response = requests.get(metalink_url, headers={"Accept": "application/metalink4+xml"})
+
             if metalink_response.status_code == 200:
                 return Response(
                     metalink_response.content,
