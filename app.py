@@ -62,22 +62,34 @@ def construct_metalink(metadata, file_urls):
     return ET.tostring(metalink, encoding="utf-8", xml_declaration=True).decode("utf-8")
 
 def get_file_urls(folder_urls, from_metalink=True):
-    file_urls = []
-    for url in folder_urls:
+    file_url_list = []
+    file_size_list = []
+    file_updated_list = []
+    
+    for folder_url in folder_urls:
         if from_metalink:
-            metalink_response = requests.get(url, headers={"Accept": "application/metalink4+xml"})
+            metalink_response = requests.get(folder_url, headers={"Accept": "application/metalink4+xml"})
             if metalink_response.status_code == 200:
                 tree = ET.ElementTree(ET.fromstring(metalink_response.content))
                 root = tree.getroot()
                 
-                folder_elements = root.findall('.//{urn:ietf:params:xml:ns:metalink}file')
-                for element in folder_elements:
-                    file_url = element.find('{urn:ietf:params:xml:ns:metalink}url').text
-                    file_urls.append(file_url)
-            else:
-                return jsonify({"error": f"Failed to fetch Metalink XML from {url}"}), 500
-    return file_urls
+                file_elements = root.findall('.//{urn:ietf:params:xml:ns:metalink}file')
+                for file in file_elements:
+                    url_elem = file.find('{urn:ietf:params:xml:ns:metalink}url')
+                    size_elem = file.find('{urn:ietf:params:xml:ns:metalink}size')
+                    updated_elem = file.find('{urn:ietf:params:xml:ns:metalink}updated')
 
+                    file_url_list.append(url_elem.text if url_elem is not None else None)
+                    file_size_list.append(size_elem.text if size_elem is not None else None)
+                    file_updated_list.append(updated_elem.text if updated_elem is not None else None)
+            else:
+                raise RuntimeError(f"Failed to fetch Metalink XML from {folder_url} (status code: {metalink_response.status_code})")
+    
+    return {
+        'url': file_url_list,
+        'size': file_size_list,
+        'updated': file_updated_list
+    }
 
 @app.route("/doi/<path:doi>")
 def serve_doi_metadata(doi):
