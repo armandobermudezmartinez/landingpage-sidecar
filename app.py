@@ -89,11 +89,9 @@ def serve_doi_metadata(doi):
         encoded_ids = [id.replace("/", "%2F") for id in ids]
         folders = fetch_datasets_folders(encoded_ids)
         folder_urls = [STORAGE_BASE_URL + folder for folder in folders]
-
-        # get_file_urls_from_metalinks(folder_urls)
+        jsonld = construct_jsonld(metadata, folder_urls)
 
         if "application/ld+json" in accept:
-            jsonld = construct_jsonld(metadata, folder_urls)
             return Response(
                 response=jsonify(jsonld).data,
                 status=200,
