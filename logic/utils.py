@@ -1,4 +1,5 @@
 import requests
+import xml.etree.ElementTree as ET
 
 def get_files_properties(folder_urls, from_metalink=True):
     file_urls = []
