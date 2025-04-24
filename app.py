@@ -75,7 +75,7 @@ def get_file_urls_from_metalinks(folder_urls):
                 file_urls.append(file_url)
         else:
             return jsonify({"error": f"Failed to fetch Metalink XML from {url}"}), 500
-    logging.debug(f"files: {file_urls}")
+    return file_urls
 
 
 @app.route("/doi/<path:doi>")
@@ -89,7 +89,7 @@ def serve_doi_metadata(doi):
         folders = fetch_datasets_folders(encoded_ids)
         folder_urls = [STORAGE_BASE_URL + folder for folder in folders]
 
-        get_file_urls_from_metalinks(folder_urls)
+        # get_file_urls_from_metalinks(folder_urls)
 
         if "application/ld+json" in accept:
             jsonld = construct_jsonld(metadata, folder_urls)
@@ -99,17 +99,25 @@ def serve_doi_metadata(doi):
                 mimetype='application/ld+json'
             )
         if "application/metalink4+xml" in accept:
-            metalink_url = folder_urls[0]
-            metalink_response = requests.get(metalink_url, headers={"Accept": "application/metalink4+xml"})
+            # metalink_url = folder_urls[0]
+            # metalink_response = requests.get(metalink_url, headers={"Accept": "application/metalink4+xml"})
 
-            if metalink_response.status_code == 200:
-                return Response(
-                    metalink_response.content,
-                    status=200,
-                    mimetype="application/metalink4+xml"
-                )
-            else:
-                return jsonify({"error": "Failed to fetch Metalink XML from the URL."}), 500
+            # if metalink_response.status_code == 200:
+            #     return Response(
+            #         metalink_response.content,
+            #         status=200,
+            #         mimetype="application/metalink4+xml"
+            #     )
+            # else:
+            #     return jsonify({"error": "Failed to fetch Metalink XML from the URL."}), 500
+
+            file_urls = get_file_urls_from_metalinks(folder_urls)
+            metalink_xml = construct_metalink(metadata, file_urls)
+            return Response(
+                metalink_xml,
+                status=200,
+                mimetype="application/metalink4+xml"
+            )
 
         elif "text/html" in accept or "*/*" in accept:
             html_resp = requests.get("http://localhost/index.html")  # request from NGINX
