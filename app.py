@@ -102,7 +102,7 @@ def get_digests(urls):
         if response.status_code == 200:
             digest = response.headers.get('Digest')
             if digest:
-                digests.append((digest.split('=', 1)[0], digest.split('=', 1)[1]))
+                digests.append(digest)
             else:
                 print("No Digest header found.")
         else:
