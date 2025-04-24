@@ -89,6 +89,23 @@ def get_files_properties(folder_urls, from_metalink=True):
     
     return file_urls, file_sizes, file_updates
 
+def get_hashes(urls):
+    headers = {
+        "Want-Digest": "ADLER32"
+    }
+    digests = []
+    for url in urls:
+        response = requests.head(url, headers=headers)
+        if response.status_code == 200:
+            digest = response.headers.get('Digest')
+            if digest:
+                digests.append(digest)
+            else:
+                print("No Digest header found.")
+        else:
+            print(f"Failed to fetch headers. Status code: {response.status_code}")
+    logging.log(f'digests: {digests}' )
+
 @app.route("/doi/<path:doi>")
 def serve_doi_metadata(doi):
     try:
@@ -110,6 +127,7 @@ def serve_doi_metadata(doi):
         
         if "application/metalink4+xml" in accept:
             urls, sizes, updates = get_files_properties(folder_urls, from_metalink=True)
+            get_hashes(urls)
             metalink_xml = construct_metalink(metadata, urls, sizes, updates)
             return Response(
                 metalink_xml,
