@@ -61,7 +61,7 @@ def construct_metalink(metadata, file_urls):
 
     return ET.tostring(metalink, encoding="utf-8", xml_declaration=True).decode("utf-8")
 
-def get_file_urls(folder_urls, from_metalink=True):
+def get_file_properties(folder_urls, from_metalink=True):
     file_url_list = []
     file_size_list = []
     file_updated_list = []
@@ -75,17 +75,21 @@ def get_file_urls(folder_urls, from_metalink=True):
                 
                 file_elements = root.findall('.//{urn:ietf:params:xml:ns:metalink}file')
                 for file in file_elements:
-                    url_elem = file.find('{urn:ietf:params:xml:ns:metalink}url')
-                    size_elem = file.find('{urn:ietf:params:xml:ns:metalink}size')
-                    updated_elem = file.find('{urn:ietf:params:xml:ns:metalink}updated')
+                    url = file.find('{urn:ietf:params:xml:ns:metalink}url')
+                    size = file.find('{urn:ietf:params:xml:ns:metalink}size')
+                    updated = file.find('{urn:ietf:params:xml:ns:metalink}updated')
 
-                    file_url_list.append(url_elem.text if url_elem is not None else None)
-                    file_size_list.append(size_elem.text if size_elem is not None else None)
-                    file_updated_list.append(updated_elem.text if updated_elem is not None else None)
+                    file_url_list.append(url.text if url is not None else None)
+                    file_size_list.append(size.text if size is not None else None)
+                    file_updated_list.append(updated.text if updated is not None else None)
             else:
                 raise RuntimeError(f"Failed to fetch Metalink XML from {folder_url} (status code: {metalink_response.status_code})")
     
-    return file_url_list, file_size_list, file_updated_list
+    return {
+        'url': file_url_list,
+        'size': file_size_list,
+        'updated': file_updated_list
+    }
 
 @app.route("/doi/<path:doi>")
 def serve_doi_metadata(doi):
@@ -107,8 +111,8 @@ def serve_doi_metadata(doi):
             )
         
         if "application/metalink4+xml" in accept:
-            file_urls = get_file_urls(folder_urls, from_metalink=True)
-            metalink_xml = construct_metalink(metadata, file_urls)
+            file_url_list, file_size_list, file_updated_list = get_file_properties(folder_urls, from_metalink=True)
+            metalink_xml = construct_metalink(metadata, file_url_list)
             return Response(
                 metalink_xml,
                 status=200,
