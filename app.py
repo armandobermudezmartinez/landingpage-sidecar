@@ -104,7 +104,7 @@ def get_hashes(urls):
                 print("No Digest header found.")
         else:
             print(f"Failed to fetch headers. Status code: {response.status_code}")
-    logging.log(f'digests: {digests}' )
+    logging.debug(f'digests: {digests}' )
 
 @app.route("/doi/<path:doi>")
 def serve_doi_metadata(doi):
