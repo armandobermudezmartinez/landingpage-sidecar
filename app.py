@@ -59,6 +59,7 @@ def construct_metalink(metadata, file_urls):
     return ET.tostring(metalink, encoding="utf-8", xml_declaration=True).decode("utf-8")
 
 def get_file_urls_from_metalinks(folder_urls):
+    
     pass
 
 @app.route("/doi/<path:doi>")
