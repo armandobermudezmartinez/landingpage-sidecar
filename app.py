@@ -99,7 +99,7 @@ def get_hashes(urls):
         if response.status_code == 200:
             digest = response.headers.get('Digest')
             if digest:
-                digests.append(digest)
+                digests.append(digest.split('=', 1)[1])
             else:
                 print("No Digest header found.")
         else:
