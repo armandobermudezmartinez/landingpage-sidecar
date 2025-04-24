@@ -51,7 +51,12 @@ def construct_metalink(metadata, download_urls):
     ET.SubElement(metalink, "name", name=metadata.get("title"))
     ET.SubElement(metalink, "description", name=metadata.get("dataDescription"))
 
+    for url in download_urls:
+        file_name = url.split("/")[-1]
+        file_el = ET.SubElement(metalink, "file", name=file_name)
+        ET.SubElement(file_el, "url").text = url
 
+    return ET.tostring(metalink, encoding="utf-8", xml_declaration=True).decode("utf-8")
 
 @app.route("/doi/<path:doi>")
 def serve_doi_metadata(doi):
