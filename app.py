@@ -76,6 +76,8 @@ def serve_doi_metadata(doi):
                 status=200,
                 mimetype='application/ld+json'
             )
+        if "application/metalink4+xml" in accept:
+            pass
         elif "text/html" in accept or "*/*" in accept:
             html_resp = requests.get("http://localhost/index.html")  # request from NGINX
             html = html_resp.text
