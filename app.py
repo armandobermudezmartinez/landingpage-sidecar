@@ -5,6 +5,8 @@ from logic.utils import get_files_properties, get_digests
 from logic.scicat_utils import fetch_PublishedData_ids, fetch_folders_urls
 from logic.jsonld import construct_jsonld
 from logic.metalink import construct_metalink
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
@@ -18,6 +20,12 @@ def serve_doi_metadata(doi):
         encoded_ids = [id.replace("/", "%2F") for id in ids]
         folder_urls = fetch_folders_urls(encoded_ids)
         jsonld = construct_jsonld(metadata, folder_urls)
+        logging.debug(f'accept: {accept}')
+        logging.debug(f'accept: {encoded_doi}')
+        logging.debug(f'accept: {metadata}')
+        logging.debug(f'accept: {ids}')
+        logging.debug(f'accept: {folder_urls}')
+        logging.debug(f'accept: {jsonld}')
 
         if "application/ld+json" in accept:
             return Response(
