@@ -28,22 +28,26 @@ def serve_doi_metadata(doi):
         logging.debug(f'accept: {jsonld}')
 
         if "application/ld+json" in accept:
-            return Response(
+            response = Response(
                 response=jsonify(jsonld).data,
                 status=200,
                 mimetype='application/ld+json'
             )
+            response.headers["Vary"] = "Accept"
+            return response
         
         if "application/metalink4+xml" in accept:
             urls, sizes, updates = get_files_properties(folder_urls, from_metalink=True)
             digests = get_digests(urls)
 
             metalink_xml = construct_metalink(metadata, urls, sizes, updates, digests)
-            return Response(
+            response = Response(
                 metalink_xml,
                 status=200,
                 mimetype="application/metalink4+xml"
             )
+            response.headers["Vary"] = "Accept"
+            return response
 
         elif "text/html" in accept or "*/*" in accept:
             html_resp = requests.get("http://localhost/index.html")  # request from NGINX
@@ -52,7 +56,9 @@ def serve_doi_metadata(doi):
                 "<head>",
                 f"<head>\n<script type='application/ld+json'>\n{json.dumps(jsonld, indent=2)}\n</script>\n"
             )
-            return Response(injected, mimetype="text/html")
+            response = Response(injected, mimetype="text/html")
+            response.headers["Vary"] = "Accept"
+            return response
 
         else:
             return jsonify({"error": "Unsupported Accept header"}), 406
