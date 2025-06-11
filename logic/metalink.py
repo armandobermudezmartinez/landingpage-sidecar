@@ -1,18 +1,17 @@
 import xml.etree.ElementTree as ET
 import urllib.parse
 
-def construct_metalink(metadata, urls, sizes, updates, digests):
+def construct_metalink(metadata, urls, sizes, updates, digests, number_of_folders):
     metalink = ET.Element("metalink", xmlns="urn:ietf:params:xml:ns:metalink")
 
     ET.SubElement(metalink, "identity", name=metadata.get("title"))
     ET.SubElement(metalink, "name", name=metadata.get("title"))
     ET.SubElement(metalink, "description", name=metadata.get("dataDescription"))
 
-    number_of_datasets = len(urls)
     for url, size, updated, digest in zip(urls, sizes, updates, digests):
         parts = url.split("/")
         encoded_folder_and_file = "/".join(parts[-2:])
-        file_name = urllib.parse.unquote(encoded_folder_and_file) if number_of_datasets > 1 else parts[-1]
+        file_name = urllib.parse.unquote(encoded_folder_and_file) if number_of_folders > 1 else urllib.parse.unquote(parts[-1])
 
         file_element = ET.SubElement(metalink, "file", name=file_name)
         hash_type, hash_value = digest.split('=', 1)

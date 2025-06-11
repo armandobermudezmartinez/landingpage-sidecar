@@ -40,7 +40,8 @@ def serve_doi_metadata(doi):
             urls, sizes, updates = get_files_properties(folder_urls, from_metalink=True)
             digests = get_digests(urls)
 
-            metalink_xml = construct_metalink(metadata, urls, sizes, updates, digests)
+            number_of_folders = len(folder_urls)
+            metalink_xml = construct_metalink(metadata, urls, sizes, updates, digests, number_of_folders)
             response = Response(
                 metalink_xml,
                 status=200,
